@@ -100,6 +100,7 @@ public class GTaskASyncTask extends AsyncTask<Void, String, Integer> {
         Notification notification=builder.getNotification();
         mNotifiManager.notify(GTASK_SYNC_NOTIFICATION_ID, notification);
     }
+
     @Override
     protected Integer doInBackground(Void... unused) {
         publishProgess(mContext.getString(R.string.sync_progress_login, NotesPreferenceActivity
