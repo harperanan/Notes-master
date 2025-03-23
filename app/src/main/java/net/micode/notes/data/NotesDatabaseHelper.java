@@ -287,7 +287,7 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DATA_UPDATE_NOTE_CONTENT_ON_DELETE_TRIGGER);
     }
 
-    static synchronized NotesDatabaseHelper getInstance(Context context) {
+    public static synchronized NotesDatabaseHelper getInstance(Context context) {
         if (mInstance == null) {
             mInstance = new NotesDatabaseHelper(context);
         }
