@@ -20,7 +20,7 @@ import android.net.Uri;
 public class Notes {
     public static final String AUTHORITY = "micode_notes";//认证信息
     public static final String TAG = "Notes";//日志输出时的标志
-    //note表中类型行的3种取值
+    //note表中类型行的3种取值，对NoteColumns.TYPE的值设置，分别是笔记、文件夹和系统文件夹
     public static final int TYPE_NOTE     = 0;
     public static final int TYPE_FOLDER   = 1;
     public static final int TYPE_SYSTEM   = 2;
@@ -32,12 +32,12 @@ public class Notes {
      * {@link Notes#ID_CALL_RECORD_FOLDER} is to store call records
      */
     //默认文件夹
-    public static final int ID_ROOT_FOLDER = 0;
+    public static final int ID_ROOT_FOLDER = 0;//默认文件夹
     public static final int ID_TEMPARAY_FOLDER = -1;//暂时的不属于文件夹的笔记
     public static final int ID_CALL_RECORD_FOLDER = -2;//存储通话记录
     public static final int ID_TRASH_FOLER = -3;//回收站
 
-    //ui布局
+    //ui布局，定义布局和组件id，便于修改
     public static final String INTENT_EXTRA_ALERT_DATE = "net.micode.notes.alert_date";
     public static final String INTENT_EXTRA_BACKGROUND_ID = "net.micode.notes.background_color_id";
     public static final String INTENT_EXTRA_WIDGET_ID = "net.micode.notes.widget_id";
@@ -59,7 +59,7 @@ public class Notes {
     /**
      * Uri to query all notes and folders
      */
-    //定义uri查询笔记和文件夹
+    //内容提供者是一个安卓组件，允许应用程序共享和存储数据，定义uri查询笔记和文件夹
     public static final Uri CONTENT_NOTE_URI = Uri.parse("content://" + AUTHORITY + "/note");
 
     /**
