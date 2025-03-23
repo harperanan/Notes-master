@@ -317,6 +317,7 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DATA_UPDATE_NOTE_CONTENT_ON_DELETE_TRIGGER);
     }
 
+
     /**
      * NotesDatabaseHelper 类使用 synchronized 关键字
      * 确保在多线程环境下只创建一个 NotesDatabaseHelper 实例。
@@ -324,6 +325,7 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
      */
 
     static synchronized NotesDatabaseHelper getInstance(Context context) {
+
         if (mInstance == null) {
             mInstance = new NotesDatabaseHelper(context);
         }
