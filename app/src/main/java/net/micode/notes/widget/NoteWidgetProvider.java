@@ -32,19 +32,26 @@ import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.ui.NoteEditActivity;
 import net.micode.notes.ui.NotesListActivity;
 
+//定义了一个抽象类 NoteWidgetProvider，
+// 它继承自 AppWidgetProvider。该类用于管理笔记小部件的行为。
 public abstract class NoteWidgetProvider extends AppWidgetProvider {
     public static final String [] PROJECTION = new String [] {
-        NoteColumns.ID,
-        NoteColumns.BG_COLOR_ID,
-        NoteColumns.SNIPPET
+        NoteColumns.ID, //笔记id
+        NoteColumns.BG_COLOR_ID, //背景颜色id
+        NoteColumns.SNIPPET //内容摘要
     };
-
+    //常量，表示 PROJECTION 数组中各列的索引。
     public static final int COLUMN_ID           = 0;
     public static final int COLUMN_BG_COLOR_ID  = 1;
     public static final int COLUMN_SNIPPET      = 2;
-
+    //一个日志标签 TAG，用于在调试时标识日志来源
     private static final String TAG = "NoteWidgetProvider";
 
+    /**
+     * 当小部件被删除时调用
+     * 更新数据库，将对应小部件的 WIDGET_ID 设置为无效值（INVALID_APPWIDGET_ID）
+     * 清理关联数据
+    */
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         ContentValues values = new ContentValues();
@@ -56,7 +63,10 @@ public abstract class NoteWidgetProvider extends AppWidgetProvider {
                     new String[] { String.valueOf(appWidgetIds[i])});
         }
     }
-
+    /**
+     * 查询数据库，获取指定小部件 ID 对应的笔记信息。
+     * 条件是 WIDGET_ID 匹配且笔记不在回收站中
+     */
     private Cursor getNoteWidgetInfo(Context context, int widgetId) {
         return context.getContentResolver().query(Notes.CONTENT_NOTE_URI,
                 PROJECTION,
@@ -65,10 +75,14 @@ public abstract class NoteWidgetProvider extends AppWidgetProvider {
                 null);
     }
 
+    /**
+     * 提供一个默认的 update 方法，调用带隐私模式的重载版本，默认关闭隐私模式
+     */
     protected void update(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         update(context, appWidgetManager, appWidgetIds, false);
     }
-
+    //遍历所有小部件 ID，更新每个小部件的内容
+    //初始化默认背景颜色、摘要内容和跳转意图
     private void update(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds,
             boolean privacyMode) {
         for (int i = 0; i < appWidgetIds.length; i++) {
@@ -79,7 +93,8 @@ public abstract class NoteWidgetProvider extends AppWidgetProvider {
                 intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 intent.putExtra(Notes.INTENT_EXTRA_WIDGET_ID, appWidgetIds[i]);
                 intent.putExtra(Notes.INTENT_EXTRA_WIDGET_TYPE, getWidgetType());
-
+                //查询笔记信息并设置摘要和背景颜色
+                //如果没有找到对应的笔记，则显示默认文本，并设置意图为新建或编辑笔记
                 Cursor c = getNoteWidgetInfo(context, appWidgetIds[i]);
                 if (c != null && c.moveToFirst()) {
                     if (c.getCount() > 1) {
@@ -95,16 +110,19 @@ public abstract class NoteWidgetProvider extends AppWidgetProvider {
                     snippet = context.getResources().getString(R.string.widget_havenot_content);
                     intent.setAction(Intent.ACTION_INSERT_OR_EDIT);
                 }
-
+                // 关闭以释放资源
                 if (c != null) {
                     c.close();
                 }
-
+                //创建 RemoteViews 对象，用于更新小部件 UI。
+                //设置背景图片资源
                 RemoteViews rv = new RemoteViews(context.getPackageName(), getLayoutId());
                 rv.setImageViewResource(R.id.widget_bg_image, getBgResourceId(bgId));
                 intent.putExtra(Notes.INTENT_EXTRA_BACKGROUND_ID, bgId);
                 /**
                  * Generate the pending intent to start host for the widget
+                 * 根据隐私模式设置小部件的显示内容和点击行为。
+                 * 隐私模式下显示“访问受限”文本，并跳转到笔记列表页面。
                  */
                 PendingIntent pendingIntent = null;
                 if (privacyMode) {
@@ -117,16 +135,17 @@ public abstract class NoteWidgetProvider extends AppWidgetProvider {
                     pendingIntent = PendingIntent.getActivity(context, appWidgetIds[i], intent,
                             PendingIntent.FLAG_UPDATE_CURRENT);
                 }
-
+                //设置点击事件。
+                //更新小部件的 UI
                 rv.setOnClickPendingIntent(R.id.widget_text, pendingIntent);
                 appWidgetManager.updateAppWidget(appWidgetIds[i], rv);
             }
         }
     }
 
-    protected abstract int getBgResourceId(int bgId);
+    protected abstract int getBgResourceId(int bgId); //根据背景id获取资源id
 
-    protected abstract int getLayoutId();
+    protected abstract int getLayoutId(); //获取小部件id
 
-    protected abstract int getWidgetType();
+    protected abstract int getWidgetType(); //获取小部件类型
 }
