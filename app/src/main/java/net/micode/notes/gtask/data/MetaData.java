@@ -54,7 +54,7 @@ public class MetaData extends Task {
     }
     /*
      * 功能描述：判断当前数据是否为空，若为空则返回真即值得保存
-     * Made By CuiCan
+
      */
     @Override
     public boolean isWorthSaving() {
@@ -80,7 +80,7 @@ public class MetaData extends Task {
     }
     /*
      * 功能描述：使用本地json数据对象设置元数据内容，一般不会用到，若用到，则抛出异常
-     * Made By CuiCan
+
      *
      */
 
@@ -92,7 +92,7 @@ public class MetaData extends Task {
     }
     /*
      * 功能描述：从元数据内容中获取本地json对象，一般不会用到，若用到，则抛出异常
-     * Made By CuiCan
+
      */
 
     @Override
@@ -100,7 +100,7 @@ public class MetaData extends Task {
         throw new IllegalAccessError("MetaData:getLocalJSONFromContent should not be called");
         /*
          * 传递非法参数异常
-         * Made By Cui Can
+         *
          */
     }
 
@@ -109,7 +109,6 @@ public class MetaData extends Task {
         throw new IllegalAccessError("MetaData:getSyncAction should not be called");
         /*
          * 传递非法参数异常
-         * Made By Cui Can
          */
     }
 
