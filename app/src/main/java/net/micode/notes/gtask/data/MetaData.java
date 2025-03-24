@@ -81,6 +81,7 @@ public class MetaData extends Task {
     /*
      * 功能描述：使用本地json数据对象设置元数据内容，一般不会用到，若用到，则抛出异常
      * Made By CuiCan
+     *
      */
 
     @Override
