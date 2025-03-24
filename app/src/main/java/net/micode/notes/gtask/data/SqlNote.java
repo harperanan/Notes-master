@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Description：用于支持小米便签最底层的数据库相关操作，和sqldata的关系上是父集关系，即note是data的子父集。
+ * 和SqlData相比，SqlNote算是真正意义上的数据了。
+ */
 
 package net.micode.notes.gtask.data;
+
 
 import android.appwidget.AppWidgetManager;
 import android.content.ContentResolver;
@@ -39,10 +44,14 @@ import java.util.ArrayList;
 
 
 public class SqlNote {
+    /*
+ * 功能描述：得到类的简写名称存入字符串TAG中
+ * 实现过程：调用getSimpleName ()函数
+ */
     private static final String TAG = SqlNote.class.getSimpleName();
 
     private static final int INVALID_ID = -99999;
-
+//集合了interface NoteColumns中所有SF常量（17个）
     public static final String[] PROJECTION_NOTE = new String[] {
             NoteColumns.ID, NoteColumns.ALERTED_DATE, NoteColumns.BG_COLOR_ID,
             NoteColumns.CREATED_DATE, NoteColumns.HAS_ATTACHMENT, NoteColumns.MODIFIED_DATE,
@@ -51,7 +60,7 @@ public class SqlNote {
             NoteColumns.LOCAL_MODIFIED, NoteColumns.ORIGIN_PARENT_ID, NoteColumns.GTASK_ID,
             NoteColumns.VERSION
     };
-
+    //以下设置17个列的编号
     public static final int ID_COLUMN = 0;
 
     public static final int ALERTED_DATE_COLUMN = 1;
@@ -85,7 +94,7 @@ public class SqlNote {
     public static final int GTASK_ID_COLUMN = 15;
 
     public static final int VERSION_COLUMN = 16;
-
+//以下定义了17个内部的变量，其中12个可以由content中获得，5个需要初始化为0或者new
     private Context mContext;
 
     private ContentResolver mContentResolver;
@@ -121,7 +130,11 @@ public class SqlNote {
     private ContentValues mDiffNoteValues;
 
     private ArrayList<SqlData> mDataList;
-
+/*
+     * 功能描述：构造函数
+     * 参数注解： mIsCreate用于标示构造方式
+*/
+    //构造函数只有context，对所有的变量进行初始化
     public SqlNote(Context context) {
         mContext = context;
         mContentResolver = context.getContentResolver();
@@ -129,9 +142,9 @@ public class SqlNote {
         mId = INVALID_ID;
         mAlertDate = 0;
         mBgColorId = ResourceParser.getDefaultBgId(context);
-        mCreatedDate = System.currentTimeMillis();
+        mCreatedDate = System.currentTimeMillis();//调用系统函数获得创建时间
         mHasAttachment = 0;
-        mModifiedDate = System.currentTimeMillis();
+        mModifiedDate = System.currentTimeMillis();//最后一次修改时间初始化为创建时间
         mParentId = 0;
         mSnippet = "";
         mType = Notes.TYPE_NOTE;
@@ -142,7 +155,11 @@ public class SqlNote {
         mDiffNoteValues = new ContentValues();
         mDataList = new ArrayList<SqlData>();
     }
-
+    /*
+     * 功能描述：构造函数
+     * 参数注解： mIsCreate用于标示构造方式
+     */
+//构造函数有context和一个数据库的cursor，多数变量通过cursor指向的一条记录直接进行初始化
     public SqlNote(Context context, Cursor c) {
         mContext = context;
         mContentResolver = context.getContentResolver();
@@ -153,7 +170,10 @@ public class SqlNote {
             loadDataContent();
         mDiffNoteValues = new ContentValues();
     }
-
+    /*
+     * 功能描述：构造函数
+     * 参数注解： mIsCreate用于标示构造方式
+     */
     public SqlNote(Context context, long id) {
         mContext = context;
         mContentResolver = context.getContentResolver();
@@ -165,17 +185,21 @@ public class SqlNote {
         mDiffNoteValues = new ContentValues();
 
     }
-
+    /*
+     * 功能描述：通过id从光标处加载数据
+     */
     private void loadFromCursor(long id) {
         Cursor c = null;
         try {
             c = mContentResolver.query(Notes.CONTENT_NOTE_URI, PROJECTION_NOTE, "(_id=?)",
                     new String[] {
                         String.valueOf(id)
-                    }, null);
+                    }, null);//通过id获得对应的ContentResolver中的cursor
             if (c != null) {
                 c.moveToNext();
                 loadFromCursor(c);
+                //然后加载数据进行初始化，这样函数
+                //SqlNote(Context context, long id)与SqlNote(Context context, long id)的实现方式基本相同
             } else {
                 Log.w(TAG, "loadFromCursor: cursor = null");
             }
@@ -184,8 +208,11 @@ public class SqlNote {
                 c.close();
         }
     }
-
+    /*
+     * 功能描述：通过游标从光标处加载数据
+     */
     private void loadFromCursor(Cursor c) {
+        //直接从一条记录中的获得以下变量的初始值
         mId = c.getLong(ID_COLUMN);
         mAlertDate = c.getLong(ALERTED_DATE_COLUMN);
         mBgColorId = c.getInt(BG_COLOR_ID_COLUMN);
@@ -199,6 +226,9 @@ public class SqlNote {
         mWidgetType = c.getInt(WIDGET_TYPE_COLUMN);
         mVersion = c.getLong(VERSION_COLUMN);
     }
+    /*
+     * 功能描述：通过content机制获取共享数据并加载到数据库当前游标处
+     */
 
     private void loadDataContent() {
         Cursor c = null;
@@ -225,7 +255,9 @@ public class SqlNote {
                 c.close();
         }
     }
-
+    /*
+     * 功能描述：设置通过content机制用于共享的数据信息
+     */
     public boolean setContent(JSONObject js) {
         try {
             JSONObject note = js.getJSONObject(GTaskStringUtils.META_HEAD_NOTE);
@@ -358,7 +390,10 @@ public class SqlNote {
         }
         return true;
     }
-
+    /*
+     * 功能描述：获取content机制提供的数据并加载到note中
+     * 参数注解：
+     */
     public JSONObject getContent() {
         try {
             JSONObject js = new JSONObject();
@@ -406,39 +441,57 @@ public class SqlNote {
         }
         return null;
     }
+    /*
+     * 功能描述：给当前id设置父id
+     */
 
     public void setParentId(long id) {
         mParentId = id;
         mDiffNoteValues.put(NoteColumns.PARENT_ID, id);
     }
+    /*
+     * 功能描述：给当前id设置Gtaskid
+     */
 
     public void setGtaskId(String gid) {
         mDiffNoteValues.put(NoteColumns.GTASK_ID, gid);
     }
-
+    /*
+     * 功能描述：给当前id设置同步id
+     */
     public void setSyncId(long syncId) {
         mDiffNoteValues.put(NoteColumns.SYNC_ID, syncId);
     }
+    /*
+     * 功能描述：初始化本地修改，即撤销所有当前修改
+     */
 
     public void resetLocalModified() {
         mDiffNoteValues.put(NoteColumns.LOCAL_MODIFIED, 0);
     }
-
+/*功能描述：获得当前id*/
     public long getId() {
         return mId;
     }
-
+/*功能描述：获得当前id的父id*/
     public long getParentId() {
         return mParentId;
     }
-
+    /*
+     * 功能描述：获取小片段即用于显示的部分便签内容
+     */
     public String getSnippet() {
         return mSnippet;
     }
-
+    /*
+     * 功能描述：判断是否为便签类型
+     */
     public boolean isNoteType() {
         return mType == Notes.TYPE_NOTE;
     }
+    /*
+     * 功能描述：commit函数用于把当前造作所做的修改保存到数据库
+     */
 
     public void commit(boolean validateVersion) {
         if (mIsCreate) {
@@ -458,7 +511,8 @@ public class SqlNote {
             }
 
             if (mType == Notes.TYPE_NOTE) {
-                for (SqlData sqlData : mDataList) {
+                for (SqlData sqlData : mDataList) {//直接使用sqldata中的实现
+
                     sqlData.commit(mId, false, -1);
                 }
             }
@@ -470,7 +524,7 @@ public class SqlNote {
             if (mDiffNoteValues.size() > 0) {
                 mVersion ++;
                 int result = 0;
-                if (!validateVersion) {
+                if (!validateVersion) {//构造字符串
                     result = mContentResolver.update(Notes.CONTENT_NOTE_URI, mDiffNoteValues, "("
                             + NoteColumns.ID + "=?)", new String[] {
                         String.valueOf(mId)
