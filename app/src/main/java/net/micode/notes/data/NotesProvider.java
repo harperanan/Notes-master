@@ -223,17 +223,22 @@ public class NotesProvider extends ContentProvider {
         return ContentUris.withAppendedId(uri, insertedId);
     }
     //删除数据项
+    //uri标记要删除数据的表或数据项
+    //selection一个可选的where子句用于指定删除条件
+    //一个可选的字符串数组，用于替换selection中的占位符
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        int count = 0;
-        String id = null;
-        SQLiteDatabase db = mHelper.getWritableDatabase();
-        boolean deleteData = false;
+        int count = 0;//记录被删除的行数
+        String id = null;//存储从uri中解析出的数据项ID
+        SQLiteDatabase db = mHelper.getWritableDatabase();//可写的数据库对象，用于执行删除操作
+        boolean deleteData = false;//用于标记是否删除了DATA表中的数据
         switch (mMatcher.match(uri)) {
+            //修改selection子句，确保删除的笔记ID大于0，然后执行删除操作并返回删除的行数
             case URI_NOTE:
                 selection = "(" + selection + ") AND " + NoteColumns.ID + ">0 ";
                 count = db.delete(TABLE.NOTE, selection, selectionArgs);
                 break;
+            //从uri中解析出ID，检查ID是否小于等于0，如果是则不执行删除操作，否则执行删除操作并返回被删除的行数
             case URI_NOTE_ITEM:
                 id = uri.getPathSegments().get(1);
                 /**
@@ -247,10 +252,12 @@ public class NotesProvider extends ContentProvider {
                 count = db.delete(TABLE.NOTE,
                         NoteColumns.ID + "=" + id + parseSelection(selection), selectionArgs);
                 break;
+            //执行删除操作并返回被删除的行数，设置deleteData为true，表示删除了DATA表中数据
             case URI_DATA:
                 count = db.delete(TABLE.DATA, selection, selectionArgs);
                 deleteData = true;
                 break;
+            //从uri中解析出ID，执行删除操作并返回被删除的行数，设置deleteData为true，表示删除了DATA表中数据
             case URI_DATA_ITEM:
                 id = uri.getPathSegments().get(1);
                 count = db.delete(TABLE.DATA,
@@ -260,6 +267,9 @@ public class NotesProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
+        //如果count大于0说明有数据被删除
+        //如果deleteData表示为true，则通知监听Notes.CONTENT_NOTE_URI的观察者数据已改变
+        //通知监听传入uri的观察者数据已改变
         if (count > 0) {
             if (deleteData) {
                 getContext().getContentResolver().notifyChange(Notes.CONTENT_NOTE_URI, null);
@@ -269,27 +279,36 @@ public class NotesProvider extends ContentProvider {
         return count;
     }
 
+    //更新数据库中的数据
+    //uri标记要删除数据的表或数据项
+    //values一个包含新值的键值对集合
+    //selection一个可选的where子句，用于指定更新条件
+    //selectionArgs字符串数组，用于替换selection中的占位符
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        int count = 0;
-        String id = null;
-        SQLiteDatabase db = mHelper.getWritableDatabase();
-        boolean updateData = false;
+        int count = 0;//记录被更新的行数
+        String id = null;//存储从uri中解析出的数据项ID
+        SQLiteDatabase db = mHelper.getWritableDatabase();//可写的数据库对象，用于执行更新操作
+        boolean updateData = false;//用于标记是否更新了DATA表中的数据
         switch (mMatcher.match(uri)) {
+            //调用increaseNoteVersion方法（用于增加便签版本），然后在note表执行更新操作并返回被更新的行数
             case URI_NOTE:
                 increaseNoteVersion(-1, selection, selectionArgs);
                 count = db.update(TABLE.NOTE, values, selection, selectionArgs);
                 break;
+            //从URI中解析出ID，并调用increaseNoteVersion方法，传入解析出的ID，最后在note表执行更新操作并返回被更新的行数
             case URI_NOTE_ITEM:
                 id = uri.getPathSegments().get(1);
                 increaseNoteVersion(Long.valueOf(id), selection, selectionArgs);
                 count = db.update(TABLE.NOTE, values, NoteColumns.ID + "=" + id
                         + parseSelection(selection), selectionArgs);
                 break;
+            //在data表执行更新操作并返回被更新的行数。设置updateData为true，表示更新了DATA表中的数据
             case URI_DATA:
                 count = db.update(TABLE.DATA, values, selection, selectionArgs);
                 updateData = true;
                 break;
+            //从URI中解析出ID。执行更新操作并返回被更新的行数。置updateData为true，表示更新了DATA表中的数据
             case URI_DATA_ITEM:
                 id = uri.getPathSegments().get(1);
                 count = db.update(TABLE.DATA, values, DataColumns.ID + "=" + id
@@ -300,6 +319,9 @@ public class NotesProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
+        //如果count大于0说明有数据被更新
+        //如果updateData表示为true，则通知监听Notes.CONTENT_NOTE_URI的观察者数据已改变
+        //通知监听传入uri的观察者数据已改变
         if (count > 0) {
             if (updateData) {
                 getContext().getContentResolver().notifyChange(Notes.CONTENT_NOTE_URI, null);
@@ -309,10 +331,12 @@ public class NotesProvider extends ContentProvider {
         return count;
     }
 
+    //解析传入的条件语句：一个SQL Where子句的一部分
     private String parseSelection(String selection) {
         return (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : "");
     }
 
+    //更新note表的version列，将其值增加1
     private void increaseNoteVersion(long id, String selection, String[] selectionArgs) {
         StringBuilder sql = new StringBuilder(120);
         sql.append("UPDATE ");
