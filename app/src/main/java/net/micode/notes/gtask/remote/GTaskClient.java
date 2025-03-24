@@ -352,12 +352,16 @@ public class GTaskClient {
     }
 
     //通过JSON发送请求
+    //利用UrlEncodedFormEntity entity和httpPost.setEntity(entity)方法把js中的内容放置到httpPost中
+    //执行请求后使用getResponseContent方法得到返回的数据和资源
+    //将资源再次放入json后返回
     private JSONObject postRequest(JSONObject js) throws NetworkFailureException {
-        if (!mLoggedin) {
+        if (!mLoggedin) {//未登录
             Log.e(TAG, "please login first");
             throw new ActionFailureException("not logged in");
         }
 
+        //实例化一个httpPost的对象用来向服务器传输数据，在这里就是发送请求，而请求的内容在js里
         HttpPost httpPost = createHttpPost();
         try {
             LinkedList<BasicNameValuePair> list = new LinkedList<BasicNameValuePair>();
@@ -365,6 +369,7 @@ public class GTaskClient {
             UrlEncodedFormEntity entity = new UrlEncodedFormEntity(list, "UTF-8");
             httpPost.setEntity(entity);
 
+            //执行请求
             // execute the post
             HttpResponse response = mHttpClient.execute(httpPost);
             String jsString = getResponseContent(response.getEntity());
@@ -389,6 +394,11 @@ public class GTaskClient {
         }
     }
 
+    //创建单个任务
+    //传入参数是一个.gtask.data.Task包里Task类的对象
+    //利用json获取Task里的内容,并且创建相应的jsPost
+    //利用postRequest得到任务的返回信息
+    //使用task.setGid设置task的new_ID
     public void createTask(Task task) throws NetworkFailureException {
         commitUpdate();
         try {
@@ -415,6 +425,7 @@ public class GTaskClient {
         }
     }
 
+    //创建一个任务列表，与createTask几乎一样，区别就是最后设置的是tasklist的gid
     public void createTaskList(TaskList tasklist) throws NetworkFailureException {
         commitUpdate();
         try {
@@ -441,6 +452,9 @@ public class GTaskClient {
         }
     }
 
+    //同步更新操作
+    //使用JSONObject进行数据存储，使用jsPost.put，Put的信息包括UpdateArray和ClientVersion
+    //使用postRequest发送这个jspost,进行处理
     public void commitUpdate() throws NetworkFailureException {
         if (mUpdateArray != null) {
             try {
@@ -462,6 +476,7 @@ public class GTaskClient {
         }
     }
 
+    //添加更新的事项
     public void addUpdateNode(Node node) throws NetworkFailureException {
         if (node != null) {
             // too many update items may result in an error
@@ -476,6 +491,10 @@ public class GTaskClient {
         }
     }
 
+    //移动task
+    //通过getGid获取task所属列表的gid
+    //通过JSONObject.put()函数设置移动后的task的相关属性值，从而达到移动的目的
+    //通过postRequest进行更新后的发送
     public void moveTask(Task task, TaskList preParent, TaskList curParent)
             throws NetworkFailureException {
         commitUpdate();
@@ -492,6 +511,7 @@ public class GTaskClient {
             if (preParent == curParent && task.getPriorSibling() != null) {
                 // put prioring_sibing_id only if moving within the tasklist and
                 // it is not the first one
+                //设置优先级ID，只有当移动是发生在文件中
                 action.put(GTaskStringUtils.GTASK_JSON_PRIOR_SIBLING_ID, task.getPriorSibling());
             }
             action.put(GTaskStringUtils.GTASK_JSON_SOURCE_LIST, preParent.getGid());
@@ -501,6 +521,7 @@ public class GTaskClient {
                 action.put(GTaskStringUtils.GTASK_JSON_DEST_LIST, curParent.getGid());
             }
             actionList.put(action);
+            //将ACTION_LIST加入jsPost中
             jsPost.put(GTaskStringUtils.GTASK_JSON_ACTION_LIST, actionList);
 
             // client_version
@@ -515,6 +536,8 @@ public class GTaskClient {
         }
     }
 
+    //删除操作结点
+    //删除后使用postRequest发送删除后的结果
     public void deleteNode(Node node) throws NetworkFailureException {
         commitUpdate();
         try {
@@ -523,6 +546,7 @@ public class GTaskClient {
 
             // action_list
             node.setDeleted(true);
+            //获取删除操作的ID，加入到actionLiast中
             actionList.put(node.getUpdateAction(getActionId()));
             jsPost.put(GTaskStringUtils.GTASK_JSON_ACTION_LIST, actionList);
 
@@ -538,6 +562,9 @@ public class GTaskClient {
         }
     }
 
+    //获取任务列表
+    //通过GetURI使用getResponseContent从网上获取数据
+    //筛选出"_setup("到)}</script>的部分，并且从中获取GTASK_JSON_LISTS的内容返回
     public JSONArray getTaskLists() throws NetworkFailureException {
         if (!mLoggedin) {
             Log.e(TAG, "please login first");
@@ -550,6 +577,7 @@ public class GTaskClient {
             response = mHttpClient.execute(httpGet);
 
             // get the task list
+            //筛选工作，把筛选出的字符串放入jsString
             String resString = getResponseContent(response.getEntity());
             String jsBegin = "_setup(";
             String jsEnd = ")}</script>";
@@ -560,6 +588,7 @@ public class GTaskClient {
                 jsString = resString.substring(begin + jsBegin.length(), end);
             }
             JSONObject js = new JSONObject(jsString);
+            //获取GTASK_JSON_LISTS
             return js.getJSONObject("t").getJSONArray(GTaskStringUtils.GTASK_JSON_LISTS);
         } catch (ClientProtocolException e) {
             Log.e(TAG, e.toString());
@@ -576,6 +605,7 @@ public class GTaskClient {
         }
     }
 
+    //通过传入的TASKList的gid,从网络上获取相应属于这个任务列表的任务
     public JSONArray getTaskList(String listGid) throws NetworkFailureException {
         commitUpdate();
         try {
@@ -587,7 +617,7 @@ public class GTaskClient {
             action.put(GTaskStringUtils.GTASK_JSON_ACTION_TYPE,
                     GTaskStringUtils.GTASK_JSON_ACTION_TYPE_GETALL);
             action.put(GTaskStringUtils.GTASK_JSON_ACTION_ID, getActionId());
-            action.put(GTaskStringUtils.GTASK_JSON_LIST_ID, listGid);
+            action.put(GTaskStringUtils.GTASK_JSON_LIST_ID, listGid);//设置为传入的listGid
             action.put(GTaskStringUtils.GTASK_JSON_GET_DELETED, false);
             actionList.put(action);
             jsPost.put(GTaskStringUtils.GTASK_JSON_ACTION_LIST, actionList);
@@ -608,6 +638,7 @@ public class GTaskClient {
         return mAccount;
     }
 
+    //重置更新的内容
     public void resetUpdateArray() {
         mUpdateArray = null;
     }
