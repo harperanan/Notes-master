@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
-package net.micode.notes.ui;
+ package net.micode.notes.ui;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-
-public class AlarmReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        intent.setClass(context, AlarmAlertActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-    }
-}
+ import android.content.BroadcastReceiver;
+ import android.content.Context;
+ import android.content.Intent;
+ 
+ // 定义一个名为 AlarmReceiver 的类，继承自 BroadcastReceiver
+ // 该类用于接收闹钟提醒的广播，并启动 AlarmAlertActivity 来显示提醒通知
+ public class AlarmReceiver extends BroadcastReceiver {
+     @Override
+     public void onReceive(Context context, Intent intent) {
+         // 将接收到的 Intent 的目标类设置为 AlarmAlertActivity
+         // 这样当 Intent 被启动时，会启动 AlarmAlertActivity
+         intent.setClass(context, AlarmAlertActivity.class);
+ 
+         // 添加标志，表示启动一个新的任务
+         // 这是因为 AlarmAlertActivity 通常需要独立于其他 Activity 运行
+         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+ 
+         // 使用 context 启动 AlarmAlertActivity
+         // 这将显示闹钟提醒的界面
+         context.startActivity(intent);
+     }
+ }
+ 

@@ -31,17 +31,21 @@ import java.util.ArrayList;
 
 
 public class TaskList extends Node {
-    private static final String TAG = TaskList.class.getSimpleName();
+    private static final String TAG = TaskList.class.getSimpleName();//tag标记
 
-    private int mIndex;
+    private int mIndex;//当前TaskList的指针
+    private ArrayList<Task> mChildren;//类中主要的保存数据的单元，用来实现一个以Task为元素的ArrayList
 
-    private ArrayList<Task> mChildren;
 
     public TaskList() {
         super();
         mChildren = new ArrayList<Task>();
         mIndex = 1;
     }
+    /* (non-Javadoc)
+     * @see net.micode.notes.gtask.data.Node#getCreateAction(int)
+     * 生成并返回一个包含了一定数据的JSONObject实体
+     */
 
     public JSONObject getCreateAction(int actionId) {
         JSONObject js = new JSONObject();
@@ -58,7 +62,7 @@ public class TaskList extends Node {
             js.put(GTaskStringUtils.GTASK_JSON_INDEX, mIndex);
 
             // entity_delta
-            JSONObject entity = new JSONObject();
+            JSONObject entity = new JSONObject();//entity实体
             entity.put(GTaskStringUtils.GTASK_JSON_NAME, getName());
             entity.put(GTaskStringUtils.GTASK_JSON_CREATOR_ID, "null");
             entity.put(GTaskStringUtils.GTASK_JSON_ENTITY_TYPE,
@@ -73,6 +77,10 @@ public class TaskList extends Node {
 
         return js;
     }
+    /* (non-Javadoc)
+     * @see net.micode.notes.gtask.data.Node#getUpdateAction(int)
+     * 生成并返回一个包含了一定数据的JSONObject实体
+     */
 
     public JSONObject getUpdateAction(int actionId) {
         JSONObject js = new JSONObject();
@@ -102,7 +110,11 @@ public class TaskList extends Node {
 
         return js;
     }
-
+    /**
+     * 从远程JSON数据解析任务内容（适用于Google Tasks同步）
+     * @param js 包含Google Tasks格式数据的JSON对象
+     * @throws ActionFailureException 当解析失败时抛出
+     */
     public void setContentByRemoteJSON(JSONObject js) {
         if (js != null) {
             try {
@@ -128,7 +140,10 @@ public class TaskList extends Node {
             }
         }
     }
-
+    /**
+     * 从本地JSON数据解析任务内容（适用于MIUI本地存储格式）
+     * @param js 包含MIUI特殊格式数据的JSON对象
+     */
     public void setContentByLocalJSON(JSONObject js) {
         if (js == null || !js.has(GTaskStringUtils.META_HEAD_NOTE)) {
             Log.w(TAG, "setContentByLocalJSON: nothing is avaiable");
@@ -136,10 +151,11 @@ public class TaskList extends Node {
 
         try {
             JSONObject folder = js.getJSONObject(GTaskStringUtils.META_HEAD_NOTE);
-
+            //处理普通文件类型
             if (folder.getInt(NoteColumns.TYPE) == Notes.TYPE_FOLDER) {
                 String name = folder.getString(NoteColumns.SNIPPET);
                 setName(GTaskStringUtils.MIUI_FOLDER_PREFFIX + name);
+            //处理系统文件夹类型
             } else if (folder.getInt(NoteColumns.TYPE) == Notes.TYPE_SYSTEM) {
                 if (folder.getLong(NoteColumns.ID) == Notes.ID_ROOT_FOLDER)
                     setName(GTaskStringUtils.MIUI_FOLDER_PREFFIX + GTaskStringUtils.FOLDER_DEFAULT);
@@ -156,7 +172,10 @@ public class TaskList extends Node {
             e.printStackTrace();
         }
     }
-
+    /**
+     * 生成符合MIUI本地存储格式的JSON数据
+     * @return 包含文件夹元数据的JSON对象
+     */
     public JSONObject getLocalJSONFromContent() {
         try {
             JSONObject js = new JSONObject();
@@ -166,7 +185,9 @@ public class TaskList extends Node {
             if (getName().startsWith(GTaskStringUtils.MIUI_FOLDER_PREFFIX))
                 folderName = folderName.substring(GTaskStringUtils.MIUI_FOLDER_PREFFIX.length(),
                         folderName.length());
+            //构建基础文件夹信息
             folder.put(NoteColumns.SNIPPET, folderName);
+            //判断系统文件夹类型
             if (folderName.equals(GTaskStringUtils.FOLDER_DEFAULT)
                     || folderName.equals(GTaskStringUtils.FOLDER_CALL_NOTE))
                 folder.put(NoteColumns.TYPE, Notes.TYPE_SYSTEM);
@@ -215,11 +236,19 @@ public class TaskList extends Node {
 
         return SYNC_ACTION_ERROR;
     }
+    /**
+     * @return
+     * 功能：获得TaskList的大小，即mChildren的大小
+     */
 
     public int getChildTaskCount() {
         return mChildren.size();
     }
-
+    /**
+     * @param task
+     * @return 返回值为是否成功添加任务。
+     * 功能：在当前任务表末尾添加新的任务。
+     */
     public boolean addChildTask(Task task) {
         boolean ret = false;
         if (task != null && !mChildren.contains(task)) {
@@ -233,6 +262,12 @@ public class TaskList extends Node {
         }
         return ret;
     }
+    /**
+     * @param task
+     * @param index
+     * @return
+     * 功能：在当前任务表的指定位置添加新的任务。
+     */
 
     public boolean addChildTask(Task task, int index) {
         if (index < 0 || index > mChildren.size()) {
@@ -259,7 +294,11 @@ public class TaskList extends Node {
 
         return true;
     }
-
+    /**
+     * @param task
+     * @return 返回删除是否成功
+     * 功能：删除TaskList中的一个Task
+     */
     public boolean removeChildTask(Task task) {
         boolean ret = false;
         int index = mChildren.indexOf(task);
@@ -280,7 +319,12 @@ public class TaskList extends Node {
         }
         return ret;
     }
-
+    /**
+     * @param task
+     * @param index
+     * @return
+     * 功能：将当前TaskList中含有的某个Task移到index位置
+     */
     public boolean moveChildTask(Task task, int index) {
 
         if (index < 0 || index >= mChildren.size()) {
@@ -297,8 +341,13 @@ public class TaskList extends Node {
         if (pos == index)
             return true;
         return (removeChildTask(task) && addChildTask(task, index));
+        //利用已实现好的功能完成当下功能
     }
-
+    /**
+     * @param gid
+     * @return返回寻找结果
+     * 功能：按gid寻找Task
+     */
     public Task findChildTaskByGid(String gid) {
         for (int i = 0; i < mChildren.size(); i++) {
             Task t = mChildren.get(i);
@@ -308,11 +357,19 @@ public class TaskList extends Node {
         }
         return null;
     }
-
+    /**
+     * @param task
+     * @return
+     * 功能：返回指定Task的index
+     */
     public int getChildTaskIndex(Task task) {
         return mChildren.indexOf(task);
     }
-
+    /**
+     * @param index
+     * @return
+     * 功能：返回指定index的Task
+     */
     public Task getChildTaskByIndex(int index) {
         if (index < 0 || index >= mChildren.size()) {
             Log.e(TAG, "getTaskByIndex: invalid index");
@@ -320,9 +377,14 @@ public class TaskList extends Node {
         }
         return mChildren.get(index);
     }
+    /**
+     * @param gid
+     * @return
+     * 功能：返回指定gid的Task
+     */
 
     public Task getChilTaskByGid(String gid) {
-        for (Task task : mChildren) {
+        for (Task task : mChildren) {//一种常见的ArrayList的遍历方法（四种）
             if (task.getGid().equals(gid))
                 return task;
         }

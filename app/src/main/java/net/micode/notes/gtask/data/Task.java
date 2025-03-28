@@ -35,22 +35,22 @@ import org.json.JSONObject;
 public class Task extends Node {
     private static final String TAG = Task.class.getSimpleName();
 
-    private boolean mCompleted;
+    private boolean mCompleted;//是否完成
 
     private String mNotes;
 
-    private JSONObject mMetaInfo;
+    private JSONObject mMetaInfo;//将在实例中存储数据的类型
 
-    private Task mPriorSibling;
+    private Task mPriorSibling;//对应的优先兄弟Task的指针
 
-    private TaskList mParent;
+    private TaskList mParent;//所在的任务列表的指针
 
     public Task() {
         super();
         mCompleted = false;
         mNotes = null;
-        mPriorSibling = null;
-        mParent = null;
+        mPriorSibling = null;//TaskList中当前Task前面的Task指针
+        mParent = null;//当前Task所在的TaskList
         mMetaInfo = null;
     }
 
