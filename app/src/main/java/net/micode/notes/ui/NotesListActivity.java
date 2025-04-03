@@ -83,6 +83,8 @@ import java.util.HashSet;
  */
 public class NotesListActivity extends Activity implements OnClickListener, OnItemLongClickListener {
     // 查询标记常量
+    private int mode=-1;//新增功能
+
     private static final int FOLDER_NOTE_LIST_QUERY_TOKEN = 0; // 文件夹笔记列表查询标记
     private static final int FOLDER_LIST_QUERY_TOKEN      = 1; // 文件夹列表查询标记
 
@@ -134,6 +136,11 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.note_list);
+        //新增功能
+        getWindow().setBackgroundDrawableResource(R.drawable.jks);
+        getWindow().setBackgroundDrawableResource(R.drawable.lyy);
+        getWindow().setBackgroundDrawableResource(R.drawable.sqay);
+
         initResources(); // 初始化资源
 
         // 首次使用时插入介绍内容
@@ -848,12 +855,35 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         } else {
             Log.e(TAG, "Wrong state:" + mState);
         }
+        //新增更换背景图片代码
+        if(mode==1)
+            menu.findItem(R.id.menu_jks).setVisible(false);
+        else if(mode==0)
+            menu.findItem(R.id.menu_lyy).setVisible(false);
+        else if(mode==-1)
+            menu.findItem(R.id.menu_sqay).setVisible(false);
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_sqay:{
+                mode=-1;
+                getWindow().setBackgroundDrawableResource(R.drawable.sqay);
+                break;
+            }
+            case R.id.menu_lyy:{
+                mode=0;
+                getWindow().setBackgroundDrawableResource(R.drawable.lyy);
+                break;
+            }
+            case R.id.menu_jks:{
+                mode=1;
+                getWindow().setBackgroundDrawableResource(R.drawable.jks);
+                break;
+            }
             case R.id.menu_new_folder:
                 showCreateOrModifyFolderDialog(true); // 创建新文件夹
                 break;
