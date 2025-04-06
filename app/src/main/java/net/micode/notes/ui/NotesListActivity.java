@@ -908,45 +908,53 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_secret: {    //进入私密模式
-                secret_mode = 1;
+            case R.id.menu_secret: {
                 AlertDialog.Builder dialog = new AlertDialog.Builder(NotesListActivity.this);
                 dialog.setTitle("重要提醒");
                 dialog.setMessage("您确认进入私密模式吗？");
                 dialog.setCancelable(false);
+
                 dialog.setPositiveButton("确认", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        secret_mode = 1;
                         startAsyncNotesListQuery();
-                        Toast.makeText(NotesListActivity.this,"您已进入私密模式",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(NotesListActivity.this, "您已进入私密模式", Toast.LENGTH_SHORT).show();
                     }
                 });
+
                 dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which){}
+                    public void onClick(DialogInterface dialog, int which) {
+                        // 什么都不用做，直接关闭对话框
+                    }
                 });
+
                 dialog.show();
-                startAsyncNotesListQuery();
-                Toast.makeText(this,"您已进入私密模式",Toast.LENGTH_SHORT).show();
                 break;
             }
-            case R.id.menu_quit_secret:{    //退出私密模式
-                secret_mode = 0;
+            case R.id.menu_quit_secret: {
                 AlertDialog.Builder dialog = new AlertDialog.Builder(NotesListActivity.this);
                 dialog.setTitle("重要提醒");
                 dialog.setMessage("您确认退出私密模式吗？");
                 dialog.setCancelable(false);
+
                 dialog.setPositiveButton("确认", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        secret_mode = 0;
                         startAsyncNotesListQuery();
-                        Toast.makeText(NotesListActivity.this,"您已退出私密模式",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(NotesListActivity.this, "您已退出私密模式", Toast.LENGTH_SHORT).show();
                     }
                 });
+
                 dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which){}
+                    public void onClick(DialogInterface dialog, int which) {
+                        // 用户取消，不操作
+                    }
                 });
+
                 dialog.show();
                 break;
             }
