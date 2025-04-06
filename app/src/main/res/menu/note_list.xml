@@ -48,4 +48,11 @@
     <item
         android:id="@+id/menu_sqay"
         android:title="@string/menu_sqay"/>
+    <item
+        android:id="@+id/menu_secret"
+        android:title="@string/menu_secret"/>
+
+    <item
+        android:id="@+id/menu_quit_secret"
+        android:title="@string/menu_quit_secret"/>
 </menu>
