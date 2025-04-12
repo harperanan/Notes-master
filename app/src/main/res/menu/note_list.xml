@@ -17,6 +17,7 @@
 
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/menu_new_folder"
         android:title="@string/menu_create_folder"/>
@@ -36,4 +37,22 @@
     <item
         android:id="@+id/menu_search"
         android:title="@string/menu_search"/>
+    <item
+        android:id="@+id/menu_jks"
+        android:title="@string/menu_jks"/>
+
+    <item
+        android:id="@+id/menu_lyy"
+        android:title="@string/menu_lyy"/>
+
+    <item
+        android:id="@+id/menu_sqay"
+        android:title="@string/menu_sqay"/>
+    <item
+        android:id="@+id/menu_secret"
+        android:title="@string/menu_secret"/>
+
+    <item
+        android:id="@+id/menu_quit_secret"
+        android:title="@string/menu_quit_secret"/>
 </menu>
