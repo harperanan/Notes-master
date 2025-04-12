@@ -19,7 +19,7 @@
 
 package net.micode.notes.gtask.exception;
 /*
- * serialVersionUID相当于java类的身份证。主要用于版本控制。
+ * serialVersionUID相当于java类的身份证，主要用于版本控制。
  * serialVersionUID作用是序列化时保持版本的兼容性，即在版本升级时反序列化仍保持对象的唯一
  */
 
